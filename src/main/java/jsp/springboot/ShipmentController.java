@@ -18,13 +18,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("shipment/details")
 public class ShipmentController {
 	@Autowired
-	private ShipmentRepository shipmentRespository;
+	private ShipmentRepository shipmentRepository;
 	
 	
 	@PostMapping
 	public ResponseEntity<ResponseStructure<Shipment>> saveShipment(@RequestBody Shipment shipment)
 	{
-		Shipment s = shipmentRespository.save(shipment);
+		Shipment s = shipmentRepository.save(shipment);
 		ResponseStructure<Shipment> response = new ResponseStructure<Shipment>();
 		response.setStatusCode(HttpStatus.CREATED.value());
 		response.setMessage("Succesfull");
@@ -36,7 +36,7 @@ public class ShipmentController {
 	@GetMapping
 	public ResponseEntity<ResponseStructure<List<Shipment>>> allshipmentDetails()
 	{
-		List<Shipment> shipments = shipmentRespository.findAll();
+		List<Shipment> shipments = shipmentRepository.findAll();
 		ResponseStructure<List<Shipment>> response = new ResponseStructure<List<Shipment>>();
 		if(shipments.isEmpty())
 		{
@@ -54,7 +54,7 @@ public class ShipmentController {
 		@GetMapping("/{id}")
 		public ResponseEntity<ResponseStructure<Shipment>> shipmentDetail(@PathVariable Integer  id)
 		{
-			Optional<Shipment> opt = shipmentRespository.findById(id);
+			Optional<Shipment> opt = shipmentRepository.findById(id);
 			ResponseStructure<Shipment> response = new ResponseStructure<Shipment>();
 			if(opt.isPresent())
 			{
@@ -70,7 +70,7 @@ public class ShipmentController {
 			
 		}
 		
-		@PutMapping("/{id}")
+		@PutMapping
 		public ResponseEntity<ResponseStructure<Shipment>> updatingshipment(@RequestBody Shipment shipment )
 		{
 			ResponseStructure<Shipment> response = new ResponseStructure<Shipment>();
@@ -79,12 +79,14 @@ public class ShipmentController {
 				throw new IdNotFoundException("id must be provided");
 				
 			}
-			Optional<Shipment> opt = shipmentRespository.findById(shipment.getId());
+			
+			Optional<Shipment> opt = shipmentRepository.findById(shipment.getId());
 			if(opt.isPresent())
 			{
+				Shipment updated = shipmentRepository.save(shipment);
 				response.setStatusCode(HttpStatus.OK.value());
 				response.setMessage("record updated ");
-				response.setData(opt.get());
+				response.setData(updated);
 				return new ResponseEntity<ResponseStructure<Shipment>>(response,HttpStatus.OK);
 						
 			}
@@ -97,11 +99,12 @@ public class ShipmentController {
 		}
 		@DeleteMapping("/{id}")
 		public ResponseEntity<ResponseStructure<String>> deletingShipment(@PathVariable Integer id){
-			ResponseStructure<String> response = new ResponseStructure();
-			Optional<Shipment> opt = shipmentRespository.findById(id);
+			ResponseStructure<String> response = new ResponseStructure<String>();
+			Optional<Shipment> opt = shipmentRepository.findById(id);
 			
 			if(opt.isPresent())
 			{
+				shipmentRepository.deleteById(id);
 				response.setStatusCode(HttpStatus.OK.value());
 				response.setMessage(" deleted ");
 				response.setData("success");
